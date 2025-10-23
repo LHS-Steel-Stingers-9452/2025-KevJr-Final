@@ -1,7 +1,3 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
@@ -18,66 +14,82 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Climb;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import frc.robot.autos.DriveForwardAuto;
 
 public class RobotContainer {
-    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
+    private final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+    private final double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
 
-    /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
-    private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+            .withDeadband(MaxSpeed * 0.1)
+            .withRotationalDeadband(MaxAngularRate * 0.1)
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
+    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     private final CommandXboxController joystick = new CommandXboxController(0);
 
+    // Subsystems
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+    private final Arm arm = new Arm();
+    private final Intake intake = new Intake();
+    private final Climb climb = new Climb();
 
     public RobotContainer() {
         configureBindings();
     }
 
     private void configureBindings() {
-        // Note that X is defined as forward according to WPILib convention,
-        // and Y is defined as to the left according to WPILib convention.
+        // Default drivetrain command
         drivetrain.setDefaultCommand(
-            // Drivetrain will execute this command periodically
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
-            )
+            drivetrain.applyRequest(() -> {
+                double speedScale = joystick.leftBumper().getAsBoolean() ? 0.4 : 1.0; // Slow mode
+                // If the robot drives sideways when pushing forward swap these
+                return drive.withVelocityX(-joystick.getLeftX() * MaxSpeed * speedScale)
+                            .withVelocityY(-joystick.getLeftY() * MaxSpeed * speedScale)
+                            .withRotationalRate(-joystick.getRightX() * MaxAngularRate * speedScale);
+            })
         );
 
-        // Idle while the robot is disabled. This ensures the configured
-        // neutral mode is applied to the drive motors while disabled.
+        // Disabled idle
         final var idle = new SwerveRequest.Idle();
         RobotModeTriggers.disabled().whileTrue(
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
         );
 
-        joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        joystick.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
+        // Field-centric reset on left bumper press
+        joystick.leftTrigger().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+
+        // Swerve wheel pointing
+        // Straighten wheels to face field forward when POV Down is pressed
+        joystick.povDown().whileTrue(drivetrain.applyRequest(() ->
+        point.withModuleDirection(new Rotation2d(0)) // 0 radians = facing field forward
         ));
 
-        // Run SysId routines when holding back/start and X/Y.
-        // Note that each routine should be run exactly once in a single log.
-        joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-        // reset the field-centric heading on left bumper press
-        joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        // Arm preset positions
+        joystick.x().onTrue(new RunCommand(() -> arm.moveToAngle(0), arm));   // Intake
+        joystick.a().onTrue(new RunCommand(() -> arm.moveToAngle(90), arm));  // Score
+        joystick.y().onTrue(new RunCommand(() -> arm.moveToAngle(120), arm)); // Upright
 
+        // Intake controls
+        joystick.rightTrigger().whileTrue(new RunCommand(() -> intake.intakeIn(), intake));
+        joystick.rightBumper().whileTrue(new RunCommand(() -> intake.intakeOut(), intake));
+
+        // Climber controls
+        joystick.povRight().whileTrue(climb.runClimber(1));   // Extend
+        joystick.povLeft().whileTrue(climb.runClimber(-1));   // Retract
+
+        // Telemetry
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
     public Command getAutonomousCommand() {
-        return Commands.print("No autonomous command configured");
+        return new DriveForwardAuto(drivetrain);
     }
 }
