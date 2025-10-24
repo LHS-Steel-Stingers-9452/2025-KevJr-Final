@@ -45,14 +45,16 @@ public class RobotContainer {
     }
 
     private void configureBindings() {
-        // Default drivetrain command
+        // Default drivetrain command with speed scaling
         drivetrain.setDefaultCommand(
             drivetrain.applyRequest(() -> {
-                double speedScale = joystick.leftBumper().getAsBoolean() ? 0.4 : 1.0; // Slow mode
-                // If the robot drives sideways when pushing forward swap these
-                return drive.withVelocityX(-joystick.getLeftX() * MaxSpeed * speedScale)
-                            .withVelocityY(-joystick.getLeftY() * MaxSpeed * speedScale)
-                            .withRotationalRate(-joystick.getRightX() * MaxAngularRate * speedScale); //Test rotation with removing "-"
+                // Use trigger state from the controller directly
+                boolean slowMode = joystick.leftBumper().getAsBoolean();
+                double speedScale = slowMode ? 0.4 : 1.0;
+                return drive
+                    .withVelocityX(-joystick.getLeftY() * MaxSpeed * speedScale)  // forward/back
+                    .withVelocityY(-joystick.getLeftX() * MaxSpeed * speedScale)  // strafe
+                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate * speedScale);
             })
         );
 

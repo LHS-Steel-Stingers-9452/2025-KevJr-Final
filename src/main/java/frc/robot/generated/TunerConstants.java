@@ -127,7 +127,7 @@ public class TunerConstants {
 
     //Start Swerve Module Constants
         // Front Left
-    private static final int kFrontLeftDriveMotorId = 6;
+    private static final int kFrontLeftDriveMotorId = 6; //make this 0
     private static final int kFrontLeftSteerMotorId = 2;
     private static final int kFrontLeftEncoderId = 12;
     private static final Angle kFrontLeftEncoderOffset = Rotations.of(0.0810546875);
@@ -170,6 +170,7 @@ public class TunerConstants {
     private static final Distance kBackRightXPos = Inches.of(-10.375);
     private static final Distance kBackRightYPos = Inches.of(-10.375);
     //PATCH NOTE (Try to set the SteerMotorInverted to True for All of them)
+    // Set the right motor values and also encoder values as well before saying bye bye to this code.
     //End SwerveModule Constants
 
     //Start SwerveModule Creator
