@@ -5,7 +5,7 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Intake extends SubsystemBase {
-    private final TalonFX intakeMotor = new TalonFX(11); // ⚠️ Change ID to your real CAN ID
+    private final TalonFX intakeMotor = new TalonFX(11); // Should be the right id
     private final DutyCycleOut control = new DutyCycleOut(0);
 
     public Intake() {
