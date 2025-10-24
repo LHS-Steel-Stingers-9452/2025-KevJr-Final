@@ -14,12 +14,12 @@ public class Intake extends SubsystemBase {
 
     /** Spins intake inwards (pulls coral in). */
     public void intakeIn() {
-        intakeMotor.setControl(control.withOutput(0.6)); // Adjust power as needed
+        intakeMotor.setControl(control.withOutput(7)); // Adjust power as needed
     }
 
     /** Spins intake outward (outtakes coral). */
     public void intakeOut() {
-        intakeMotor.setControl(control.withOutput(-0.8)); // Adjust for your needs
+        intakeMotor.setControl(control.withOutput(-1.2)); // Adjust for your needs
     }
 
     /** Stops intake motor. */

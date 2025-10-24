@@ -52,7 +52,7 @@ public class RobotContainer {
                 // If the robot drives sideways when pushing forward swap these
                 return drive.withVelocityX(-joystick.getLeftX() * MaxSpeed * speedScale)
                             .withVelocityY(-joystick.getLeftY() * MaxSpeed * speedScale)
-                            .withRotationalRate(-joystick.getRightX() * MaxAngularRate * speedScale);
+                            .withRotationalRate(-joystick.getRightX() * MaxAngularRate * speedScale); //Test rotation with removing "-"
             })
         );
 
@@ -77,9 +77,15 @@ public class RobotContainer {
         joystick.a().onTrue(new RunCommand(() -> arm.moveToAngle(90), arm));  // Score
         joystick.y().onTrue(new RunCommand(() -> arm.moveToAngle(120), arm)); // Upright
 
-        // Intake controls
-        joystick.rightTrigger().whileTrue(new RunCommand(() -> intake.intakeIn(), intake));
-        joystick.rightBumper().whileTrue(new RunCommand(() -> intake.intakeOut(), intake));
+        // Intake in (hold to run)
+        joystick.rightTrigger()
+        .whileTrue(new RunCommand(() -> intake.intakeIn(), intake))
+        .onFalse(new RunCommand(() -> intake.stop(), intake));
+
+        // Intake out (hold to run)
+        joystick.rightBumper()
+        .whileTrue(new RunCommand(() -> intake.intakeOut(), intake))
+        .onFalse(new RunCommand(() -> intake.stop(), intake));
 
         // Climber controls
         joystick.povRight().whileTrue(climb.runClimber(1));   // Extend
