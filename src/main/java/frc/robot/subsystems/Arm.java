@@ -10,22 +10,22 @@ public class Arm extends SubsystemBase {
 
     private final TalonFX armMotor;
 
-    private double targetAngle = 0.0;     // Desired arm angle in degrees
+    private double targetAngle = 21;     // Desired arm angle in degrees
     private double currentSetpoint = 0.0; // Ramped arm angle
     private final double rampRate = 2.0;  // Degrees per loop
 
-    private final double minAngle = 0.0;   // Safe minimum
-    private final double maxAngle = 120.0; // Safe maximum
+    private final double minAngle = 110;   // Safe minimum
+    private final double maxAngle = 13; // Safe maximum
 
     private final double deadband = 1.0;   // Degrees within target
-    private final double maxPower = 0.4;   // Motor power (0–1)
+    private final double maxPower = 0.2;   // Motor power (0–1)
 
-    private final double gearRatio = 1.0;  // Replace with your actual gearbox ratio
+    private final double gearRatio = 45;  // Replace with the actual gearbox ratio
 
     private double softwareOffset = 0.0;   // Software zero offset
 
     public Arm() {
-        armMotor = new TalonFX(14); // Replace with your motor ID
+        armMotor = new TalonFX(55); // Replace with the motor ID 14
         armMotor.setNeutralMode(NeutralModeValue.Brake);
 
         // Initialize setpoint to current arm position
@@ -72,7 +72,7 @@ public class Arm extends SubsystemBase {
         }
         // System print to continuously display arm angle
         System.out.println("Arm Angle: " + getCurrentAngle() + "°, Target: " + targetAngle);
-        
+
         // SmartDashboard telemetry
         SmartDashboard.putNumber("Arm Angle", getCurrentAngle());
         SmartDashboard.putNumber("Arm Target", targetAngle);

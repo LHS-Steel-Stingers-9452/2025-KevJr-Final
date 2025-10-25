@@ -8,6 +8,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -74,10 +75,10 @@ public class RobotContainer {
         ));
 
 
-        // Arm preset positions
-        joystick.x().onTrue(new RunCommand(() -> arm.moveToAngle(0), arm));   // Intake
-        joystick.a().onTrue(new RunCommand(() -> arm.moveToAngle(90), arm));  // Score
-        joystick.y().onTrue(new RunCommand(() -> arm.moveToAngle(120), arm)); // Upright
+        // Arm preset positions (tap to set)
+        joystick.x().onTrue(new InstantCommand(() -> arm.moveToAngle(0), arm));   // Intake from floor
+        joystick.a().onTrue(new InstantCommand(() -> arm.moveToAngle(90), arm));  // Score position
+        joystick.y().onTrue(new InstantCommand(() -> arm.moveToAngle(120), arm)); // Fully upright
 
         // Intake in (hold to run)
         joystick.rightTrigger()
