@@ -20,7 +20,8 @@ public class DriveForwardAuto extends Command {
 
     @Override
     public void initialize() {
-        startingPose = drivetrain.getState().Pose; // Save starting position
+        //startingPose = drivetrain.getState().Pose; // Save starting position
+        drivetrain.seedFieldCentric();
     }
 
     @Override
@@ -37,11 +38,11 @@ public class DriveForwardAuto extends Command {
         drivetrain.setControl(new SwerveRequest.Idle()); // Stop movement
     }
 
-    @Override
-    public boolean isFinished() {
-        Pose2d currentPose = drivetrain.getState().Pose;
-        double distanceTraveled = currentPose.getTranslation()
-                                             .getDistance(startingPose.getTranslation());
-        return distanceTraveled >= targetDistanceMeters;
-    }
+    // @Override
+    // public boolean isFinished() {
+    //     // Pose2d currentPose = drivetrain.getState().Pose;
+    //     // double distanceTraveled = currentPose.getTranslation()
+    //     //                                      .getDistance(startingPose.getTranslation());
+    //     // return distanceTraveled >= targetDistanceMeters;
+    // }
 }

@@ -6,6 +6,7 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -51,7 +52,7 @@ public class RobotContainer {
             drivetrain.applyRequest(() -> {
                 // Use trigger state from the controller directly
                 boolean slowMode = joystick.leftBumper().getAsBoolean();
-                double speedScale = slowMode ? 0.4 : 1.0;
+                double speedScale = slowMode ? 0.2 : 1.0;
                 return drive
                     .withVelocityX(-joystick.getLeftY() * MaxSpeed * speedScale)  // forward/back
                     .withVelocityY(-joystick.getLeftX() * MaxSpeed * speedScale)  // strafe
@@ -76,9 +77,24 @@ public class RobotContainer {
 
 
         // Arm preset positions (tap to set)
-        joystick.x().onTrue(new InstantCommand(() -> arm.moveToAngle(0), arm));   // Intake from floor
-        joystick.a().onTrue(new InstantCommand(() -> arm.moveToAngle(90), arm));  // Score position
-        joystick.y().onTrue(new InstantCommand(() -> arm.moveToAngle(120), arm)); // Fully upright
+        // joystick.x().onTrue(new InstantCommand(() -> arm.moveToAngle(0), arm));   // Intake from floor
+        // joystick.a().onTrue(new InstantCommand(() -> arm.moveToAngle(90), arm));  // Score position
+        // joystick.y().onTrue(new InstantCommand(() -> arm.moveToAngle(120), arm)); // Fully upright
+        
+        // joystick.y().whileTrue(arm.runArm(0.1));        
+        // joystick.a().whileTrue(arm.runArm(-0.1));
+
+        joystick.y().onTrue(arm.setPosition(0));
+        joystick.x().onTrue(arm.setPosition(-2));
+        joystick.a().onTrue(arm.setPosition(-14));
+
+
+
+        // upright: -1.5
+        // -2 for scoring position
+        // -14 for intake
+
+
 
         // Intake in (hold to run)
         joystick.rightTrigger()
@@ -96,9 +112,17 @@ public class RobotContainer {
 
         // Telemetry
         drivetrain.registerTelemetry(logger::telemeterize);
+
+        SmartDashboard.putData("Zero encoder", new InstantCommand(() -> arm.zeroEncoder()).ignoringDisable(true));
+        SmartDashboard.putData("score position", arm.setPosition(-8));
     }
 
     public Command getAutonomousCommand() {
         return new DriveForwardAuto(drivetrain);
     }
+
+    public void reset() {
+        arm.zeroEncoder();
+    }
+
 }
